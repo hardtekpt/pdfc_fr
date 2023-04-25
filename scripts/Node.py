@@ -4,13 +4,13 @@ import rospy
 import sys
 import numpy as np
 
-from dfc_mas_fr.Algorithm import Algorithm
-from dfc_mas_fr.NodeHelper import NodeHelper
-from dfc_mas_fr.srv import Commander
+from pdfc_fr.Algorithm import Algorithm
+from pdfc_fr.NodeHelper import NodeHelper
+from pdfc_fr.srv import Commander
 from geometry_msgs.msg import Twist
-from dfc_mas_fr.msg import Map
-from dfc_mas_fr.GradientMap import GradientMap
-from dfc_mas_fr.EKF import EKF
+from pdfc_fr.msg import Map
+from pdfc_fr.GradientMap import GradientMap
+from pdfc_fr.EKF import EKF
 
 def Node(id:int):
 

@@ -78,7 +78,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
-  dfc_mas_fr
+  pdfc_fr
 )
 
 ################################################

@@ -4,10 +4,10 @@ import rospy
 import sys
 from geometry_msgs.msg import PoseStamped
 from visualization_msgs.msg import Marker, MarkerArray
-from dfc_mas_fr.GradientMap import GradientMap
+from pdfc_fr.GradientMap import GradientMap
 import matplotlib
 import numpy as np
-from dfc_mas_fr.msg import Map
+from pdfc_fr.msg import Map
 
 def pos_circle(p:PoseStamped, args):
 
@@ -66,8 +66,8 @@ def pos_callback(p:PoseStamped, args):
     marker.color.r = 1.0
     marker.color.g = 1.0
     marker.color.b = 1.0
-    marker.mesh_resource = "package://dfc_mas_fr/meshes/crazyflie2.dae"
-    #marker.mesh_resource = "~/crazyarena/crazyswarm/ros_ws/src/dfc_mas_fr/meshes/crazyflie2.dae"
+    marker.mesh_resource = "package://pdfc_fr/meshes/crazyflie2.dae"
+    #marker.mesh_resource = "~/crazyarena/crazyswarm/ros_ws/src/pdfc_fr/meshes/crazyflie2.dae"
     marker.mesh_use_embedded_materials = True
     pub_marker.publish(marker)
 

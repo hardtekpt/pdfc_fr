@@ -4,7 +4,7 @@ import rospy
 import sys
 from os.path import dirname, abspath
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__))))+"/crazyswarm/scripts")
-from dfc_mas_fr.PublisherHelper import PublisherHelper
+from pdfc_fr.PublisherHelper import PublisherHelper
 
 from pycrazyswarm import *
 

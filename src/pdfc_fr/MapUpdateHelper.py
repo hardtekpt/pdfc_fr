@@ -2,8 +2,8 @@
 
 import rospy
 import numpy as np
-from dfc_mas_fr.msg import Map
-from dfc_mas_fr.GradientMap import GradientMap
+from pdfc_fr.msg import Map
+from pdfc_fr.GradientMap import GradientMap
 import random
 from enum import Enum
 

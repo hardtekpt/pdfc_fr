@@ -5,8 +5,8 @@ import numpy as np
 from enum import Enum
 from geometry_msgs.msg import TwistStamped, PoseStamped, Twist, Pose
 from rosgraph_msgs.msg import Clock
-from dfc_mas_fr.srv import Commander
-from dfc_mas_fr.MapUpdateHelper import MapUpdateHelper
+from pdfc_fr.srv import Commander
+from pdfc_fr.MapUpdateHelper import MapUpdateHelper
 
 CH = Enum('Commander_Handler', ['TAKEOFF', 'TAKINGOFF', 'FLY', 'FLYING', 'LAND', 'LANDING'])
 class PublisherHelper:

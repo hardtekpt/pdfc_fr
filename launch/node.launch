@@ -6,12 +6,12 @@
     <arg name="n_agents" default="10"/>
     
     <group if="$(arg sim)">
-        <node pkg="dfc_mas_fr" type="Node.py" name="$(arg name)" output="screen" args="$(arg id) $(arg n_agents)">
+        <node pkg="pdfc_fr" type="Node.py" name="$(arg name)" output="screen" args="$(arg id) $(arg n_agents)">
             
         </node>
     </group>
     <group if="$(eval sim == 'false')">
-        <node pkg="dfc_mas_fr" type="Node.py" name="$(arg name)" output="screen" args="$(arg id)">
+        <node pkg="pdfc_fr" type="Node.py" name="$(arg name)" output="screen" args="$(arg id)">
             
         </node>
     </group>

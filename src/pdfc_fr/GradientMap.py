@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import csv
-from dfc_mas_fr.msg import Hiperboloid, Obstacle, Map
+from pdfc_fr.msg import Hiperboloid, Obstacle, Map
 class GradientMap():
 
     OBSTACLE_UTILITY_VALUE = -2000

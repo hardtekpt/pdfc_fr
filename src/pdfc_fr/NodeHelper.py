@@ -5,7 +5,7 @@ import message_filters
 import numpy as np
 
 from geometry_msgs.msg import TwistStamped, PoseStamped, Twist, Pose
-from dfc_mas_fr.srv import CommanderResponse
+from pdfc_fr.srv import CommanderResponse
 
 class NodeHelper:
 
