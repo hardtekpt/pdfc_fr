@@ -94,8 +94,8 @@ def Node(id:int):
         nh.publish_estimated_pos(p)
 
         v = Twist()
-        v.linear.x = vel[0]
-        v.linear.y = vel[1]
+        v.linear.x = 0
+        v.linear.y = 0
         v.linear.z = 0
         pub_vel.publish(v)
         rate.sleep()

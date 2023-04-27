@@ -28,9 +28,6 @@ class TowerHelper():
             l = random.random() * map_dimensions[0]
             a = random.random()
 
-            l = 18
-            a = 1
-
             if a < 0.5:
                 self.towers[i,0] = 0
                 self.towers[i,1] = l
@@ -44,8 +41,6 @@ class TowerHelper():
             self.towers[i,2] = 0
             self.towers[i,3] = 0
 
-            print(self.towers[i,0:2])
-
 
     def get_new_dir(self):
 
@@ -55,35 +50,44 @@ class TowerHelper():
 
         pass
 
-    def get_strip_start_end_points_from_vector(self, vector: np.ndarray((2,)), tower_position: np.ndarray((2,)), space_size: float):
+    def get_strip_start_end_points_from_vector(self, vector: np.ndarray((2,)), tower_position: np.ndarray((2,)), space_size: float, p):
 
         m = vector[1] / vector[0]
         b = tower_position[1] - m * tower_position[0]
         points = np.zeros((2, 2))
-        # Point at x = 0:
+
         points[0, :] = np.array([0, b])
-
-        if b < 0:
-
-            points[0, :] = np.array([-b/m, 0])
-
+        
         if b > space_size:
-
+            
             points[0, :] = np.array([(space_size-b)/m, space_size])
 
-        # Point at x = space_size
+            unit_vector_1 = (tower_position-p) / np.linalg.norm((tower_position-p))
+            unit_vector_2 = (tower_position-points[0,:]) / np.linalg.norm((tower_position-points[0,:]))
+            dot_product = np.dot(unit_vector_1, unit_vector_2)
+            angle = np.arccos(dot_product)
+
+            if angle > 2.5:
+                points[0, :] = np.array([space_size, 0])
+
+        if b < 0:
+            points[0, :] = np.array([-b/m, 0])
+
         points[1, :] = np.array([space_size, m * space_size + b])
 
-        if m * space_size + b < 0:
-
-            points[1, :] = np.array([-b/m, 0])
-        
         if m * space_size + b > space_size:
-
             points[1, :] = np.array([(space_size-b)/m, space_size])
 
+            unit_vector_1 = (tower_position-p) / np.linalg.norm((tower_position-p))
+            unit_vector_2 = (tower_position-points[1,:]) / np.linalg.norm((tower_position-points[1,:]))
+            dot_product = np.dot(unit_vector_1, unit_vector_2)
+            angle = np.arccos(dot_product)
 
+            if angle > 2.5:
+                points[1, :] = np.array([0, 0])
 
+        if m * space_size + b < 0:
+            points[1, :] = np.array([-b/m, 0])
 
         return points
     
@@ -107,17 +111,17 @@ class TowerHelper():
             #self.towers[i,2] /= n
             #self.towers[i,3] /= n
 
+            lower_vector = self.rotate_vector(np.array(self.towers[i,2:4]), -1 * self.strip_half_rads_sin, self.strip_half_rads_cos)
+            upper_vector = self.rotate_vector(np.array(self.towers[i,2:4]), self.strip_half_rads_sin, self.strip_half_rads_cos)
+
+            lower_boundary = self.get_strip_start_end_points_from_vector(lower_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
+            upper_boundary = self.get_strip_start_end_points_from_vector(upper_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
+
             # Calculate neighbours
 
             # Publish agent p info to all neighbours
 
             # Publish tower to vizualization
-            lower_vector = self.rotate_vector(np.array(self.towers[i,2:4]), -1 * self.strip_half_rads_sin, self.strip_half_rads_cos)
-            upper_vector = self.rotate_vector(np.array(self.towers[i,2:4]), self.strip_half_rads_sin, self.strip_half_rads_cos)
-
-            lower_boundary = self.get_strip_start_end_points_from_vector(lower_vector, self.towers[i,0:2], self.map_dimensions[0])
-            upper_boundary = self.get_strip_start_end_points_from_vector(upper_vector, self.towers[i,0:2], self.map_dimensions[0])
-
             t = Tower()
             t.pos = self.towers[i,0:2]
             t.dir = self.towers[i,2:4]
