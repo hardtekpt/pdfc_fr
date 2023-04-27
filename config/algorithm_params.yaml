@@ -17,3 +17,5 @@ cf_radius: 0.20
 noise_std: 0.05
 publish_rate: 20
 map_draw_resolution: 0.5
+number_of_towers: 1
+tower_angle: 16

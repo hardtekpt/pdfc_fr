@@ -2,12 +2,12 @@
 
 import rospy
 import sys
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Point
 from visualization_msgs.msg import Marker, MarkerArray
 from pdfc_fr.GradientMap import GradientMap
 import matplotlib
 import numpy as np
-from pdfc_fr.msg import Map
+from pdfc_fr.msg import Map, Tower, Towers
 
 def pos_circle(p:PoseStamped, args):
 
@@ -151,6 +151,101 @@ def map_update(update_msg:Map, map_pub):
 
     publish_map(map_pub, update_msg)
 
+def towers_update(update_msg:Towers, args):
+
+    tower_cones = MarkerArray()    
+    towers = MarkerArray()    
+
+    for t in update_msg.towers:
+
+        p = Point()
+        p.z = 1
+        p.x = t.pos[0]
+        p.y = t.pos[1]
+
+        c = Point()
+        c.z = 1
+        c.x = t.dir[0] + t.pos[0]
+        c.y = t.dir[1] + t.pos[1]
+
+        l_e = Point()
+        l_e.z = 1
+        l_e.x = t.lower_b_e[0]
+        l_e.y = t.lower_b_e[1]
+
+        u_e = Point()
+        u_e.z = 1
+        u_e.x = t.upper_b_e[0]
+        u_e.y = t.upper_b_e[1]
+
+        l_s = Point()
+        l_s.z = 1
+        l_s.x = t.lower_b_s[0]
+        l_s.y = t.lower_b_s[1]
+
+        u_s = Point()
+        u_s.z = 1
+        u_s.x = t.upper_b_s[0]
+        u_s.y = t.upper_b_s[1]
+
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "tower_cone"
+        marker.id = 0
+        marker.type = Marker.LINE_LIST
+        marker.action = 0
+        marker.pose.position.x = 0
+        marker.pose.position.y = 0
+        marker.pose.position.z = 0
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = 0.05
+        marker.scale.y = 1
+        marker.scale.z = 1
+        marker.color.a = 1
+        marker.color.r = 1.0
+        marker.color.g = 1.0
+        marker.color.b = 1.0
+        marker.points = []
+        marker.points.append(p)
+        marker.points.append(c)
+        marker.points.append(l_s)
+        marker.points.append(l_e)
+        marker.points.append(u_s)
+        marker.points.append(u_e)
+
+        tower_cones.markers.append(marker)
+
+        marker1 = Marker()
+        marker1.header.frame_id = "map"
+        marker1.header.stamp = rospy.Time.now()
+        marker1.ns = "tower"
+        marker1.id = 0
+        marker1.type = Marker.CUBE
+        marker1.action = 0
+        marker1.pose.position.x = p.x
+        marker1.pose.position.y = p.y
+        marker1.pose.position.z = p.z
+        marker1.pose.orientation.x = 0
+        marker1.pose.orientation.y = 0
+        marker1.pose.orientation.z = 0
+        marker1.pose.orientation.w = 1
+        marker1.scale.x = 0.5
+        marker1.scale.y = 0.5
+        marker1.scale.z = 0.05
+        marker1.color.a = 1
+        marker1.color.r = 0.0
+        marker1.color.g = 0.0
+        marker1.color.b = 1.0
+
+        towers.markers.append(marker1)        
+
+    args[0].publish(tower_cones)
+    args[1].publish(towers)
+
 
 if __name__ == '__main__':
 
@@ -170,4 +265,9 @@ if __name__ == '__main__':
 
     map_pub = rospy.Publisher('/algorithm/map', MarkerArray, queue_size=10)
     rospy.Subscriber('publisher/map', Map, map_update, map_pub)
+
+    towers_pub = rospy.Publisher('/algorithm/towers', MarkerArray, queue_size=10)
+    towers_cone_pub = rospy.Publisher('/algorithm/towers_cone', MarkerArray, queue_size=10)
+    rospy.Subscriber('publisher/towers', Towers, towers_update, (towers_cone_pub, towers_pub))
+
     rospy.spin()

@@ -29,11 +29,11 @@ class Algorithm:
         alignment = self.get_alignment_vector(current_velocities,distribution)
         attraction = self.get_attraction_vector(current_positions,distribution)
         utility = self.get_utility_vector(current_positions)
-        formation = self.get_formation_vector(current_positions,distribution)
+        #formation = self.get_formation_vector(current_positions,distribution)
         random = self.get_random_vector()
 
         #heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[6]*random
-        heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[5]*formation + cw[6]*random
+        heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[6]*random
         heading_norm = self.normalize(heading)
 
         new_velocity = current_velocities[self.agent, :] + heading

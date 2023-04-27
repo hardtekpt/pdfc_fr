@@ -7,6 +7,7 @@ from geometry_msgs.msg import TwistStamped, PoseStamped, Twist, Pose
 from rosgraph_msgs.msg import Clock
 from pdfc_fr.srv import Commander
 from pdfc_fr.MapUpdateHelper import MapUpdateHelper
+from pdfc_fr.TowerHelper import TowerHelper
 
 CH = Enum('Commander_Handler', ['TAKEOFF', 'TAKINGOFF', 'FLY', 'FLYING', 'LAND', 'LANDING'])
 class PublisherHelper:
@@ -36,15 +37,26 @@ class PublisherHelper:
             self.pub_vel[i] = rospy.Publisher('node'+str(cf.id)+'/twist', TwistStamped, queue_size=10)
             self.cmd_vel_sub[i] = rospy.Subscriber('node'+str(cf.id)+'/cmd_vel', Twist, self.vel_callback, (cf,))
 
+        self.tower_handler = TowerHelper(self.map_handler.map.dimensions)
+
     def run_algorithm(self):
 
         init_time = self.th.time()
         ii = 0
+        iii = 0
         while (not self.th.isShutdown()):
 
             # Publish agent positions and velocities
             curr_pos = self.position_publisher(self.pub_pos)
             self.velocity_publisher(self.pub_vel)
+
+            # Run the towers
+            if iii == self.number_of_agents:
+                iii = 0
+
+            if np.remainder(ii,2) == 0:
+                self.tower_handler.run_towers(curr_pos, iii)
+                iii += 1
 
             # Publish map
             if ii == self.rate:

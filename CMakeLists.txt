@@ -57,6 +57,8 @@ add_message_files(
   Hiperboloid.msg
   #MapUpdate.msg
   Map.msg
+  Tower.msg
+  Towers.msg
 )
 
 ## Generate services in the 'srv' folder
