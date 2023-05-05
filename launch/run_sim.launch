@@ -58,7 +58,7 @@
             <arg name="name" value="node10"/>
             <arg name="id" value="10"/>
             <arg name="sim" value="$(arg sim)"/>
-        </include>
+        </include> 
 
         <!-- <include file="$(find pdfc_fr)/launch/node.launch">
             <arg name="name" value="node11"/>

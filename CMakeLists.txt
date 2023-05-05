@@ -59,6 +59,8 @@ add_message_files(
   Map.msg
   Tower.msg
   Towers.msg
+  TowerData.msg
+  TowerDataArray.msg
 )
 
 ## Generate services in the 'srv' folder

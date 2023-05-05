@@ -3,15 +3,18 @@
 import rospy
 import numpy as np
 import random
-from pdfc_fr.msg import Towers, Tower
+from pdfc_fr.msg import Towers, Tower, TowerData, TowerDataArray
 import math
 
 class TowerHelper():
 
-    def __init__(self, map_dimensions):
+    def __init__(self, map_dimensions, pub_tower_data):
 
         self.number_of_towers = rospy.get_param("number_of_towers")
         self.tower_angle = rospy.get_param("tower_angle")
+
+        self.cf_radius = rospy.get_param("cf_radius")
+        self.noise_std = rospy.get_param("noise_std")
         
         self.strip_half_rads = math.radians(self.tower_angle/2)
         self.strip_half_rads_sin = math.sin(self.strip_half_rads)
@@ -22,11 +25,18 @@ class TowerHelper():
         self.towers = np.ndarray((self.number_of_towers, 5),)
 
         self.pub_tower = rospy.Publisher('publisher/towers', Towers, queue_size=10)
+        self.pub_tower_data = pub_tower_data
+
+        self.corrupted_pos = np.ndarray((self.number_of_towers,3))
+        self.corrupted_vel = np.ndarray((self.number_of_towers,3))
 
         for i in range(self.number_of_towers):
 
             l = random.random() * map_dimensions[0]
             a = random.random()
+
+            l = 0
+            a = 0
 
             if a < 0.5:
                 self.towers[i,0] = 0
@@ -40,6 +50,8 @@ class TowerHelper():
 
             self.towers[i,2] = 0
             self.towers[i,3] = 0
+
+        
 
 
     def get_new_dir(self):
@@ -96,13 +108,71 @@ class TowerHelper():
         x = vector[0] * cos - vector[1] * sin
         y = vector[0] * sin + vector[1] * cos
         return np.array([x, y])
+    
+    def order_boundaries(self, lower_boundary, upper_boundary):
+
+        if lower_boundary[0, 1] != upper_boundary[0, 1]:
+            if lower_boundary[0, 1] < upper_boundary[0, 1]:
+                return lower_boundary, upper_boundary
+            return upper_boundary, lower_boundary
+
+        if lower_boundary[1, 1] < upper_boundary[1, 1]:
+            return lower_boundary, upper_boundary
+        return upper_boundary, lower_boundary
+    
+    def get_neighbours(self, curr_pos, lower_boundary, upper_boundary):
+
+        dist = np.zeros((len(curr_pos),))
+
+        m_l = (lower_boundary[1,1]-lower_boundary[0,1]) / (lower_boundary[1,0]-lower_boundary[0,0])
+        b_l = lower_boundary[0,1] - m_l * lower_boundary[0,0]
+
+        m_u = (upper_boundary[1,1]-upper_boundary[0,1]) / (upper_boundary[1,0]-upper_boundary[0,0])
+        b_u = upper_boundary[0,1] - m_l * upper_boundary[0,0]
+
+        radius = self.cf_radius + 6 * self.noise_std
+
+        for i in range(len(curr_pos)):
+
+            x = curr_pos[i, 0]
+            y = curr_pos[i, 1]
+
+            # Check if point is above lower boundary and below lower boundary
+            if (y >= m_l * x + b_l + radius) and (y <= m_u * x + b_u - radius):
+                dist[i] = 1
+
+        return dist
+
+    def corrupt_data(self, data):
+
+        corrupted_data = np.ndarray((len(data),3))
+        noise = np.random.normal(0,self.noise_std,3)
+
+        for i in range(len(noise)):
+            if noise[i] > 3 * self.noise_std:
+                noise[i] = 3 * self.noise_std
+            if noise[i] < -3 * self.noise_std:
+                noise[i] = -3 * self.noise_std
+        
+        for i in range(len(data)):
+            corrupted_data[i,0] = data[i,0] + noise[0]
+            corrupted_data[i,1] = data[i,1] + noise[1]
+            corrupted_data[i,2] = data[i,2] + noise[2]
+        return corrupted_data
         
 
-    def run_towers(self, curr_pos, idx):
+    def run_towers(self, curr_pos, curr_vel, idx):
+
+        if idx == 0:
+            self.corrupted_pos = self.corrupt_data(curr_pos)
+            self.corrupted_vel = self.corrupt_data(curr_vel)
+
+        corrupted_pos = self.corrupted_pos
+        corrupted_vel = self.corrupted_vel
 
         for i in range(self.number_of_towers):
             
-            p = curr_pos[idx, :]
+            p = corrupted_pos[idx, :]
 
             # Align tower with agent
             self.towers[i,2] = p[0] - self.towers[i,0]
@@ -117,9 +187,35 @@ class TowerHelper():
             lower_boundary = self.get_strip_start_end_points_from_vector(lower_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
             upper_boundary = self.get_strip_start_end_points_from_vector(upper_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
 
+            lower_boundary, upper_boundary = self.order_boundaries(lower_boundary,upper_boundary)
+
             # Calculate neighbours
+            neighbours = self.get_neighbours(corrupted_pos, lower_boundary, upper_boundary)
+            neighbours[idx] = 1
+
+            #print("neighbours of node ", idx, np.where(neighbours == 1)[0])
+
+            #print("s", idx,  neighbours)
 
             # Publish agent p info to all neighbours
+            data_array = TowerDataArray()
+             
+            for j in range(len(curr_pos)):
+                if neighbours[j] == 1:
+                    data = TowerData()
+
+                    data.p = corrupted_pos[j, :]
+                    data.v = corrupted_vel[j, :]
+                    data.id = j
+                    data.n
+
+                    data_array.data.append(data)
+            for j in range(len(curr_pos)):
+                if neighbours[j] == 1:
+                    # publish p to i
+                    data_array.target = idx
+                    self.pub_tower_data[j].publish(data_array)
+
 
             # Publish tower to vizualization
             t = Tower()

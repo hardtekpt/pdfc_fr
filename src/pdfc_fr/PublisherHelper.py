@@ -8,6 +8,7 @@ from rosgraph_msgs.msg import Clock
 from pdfc_fr.srv import Commander
 from pdfc_fr.MapUpdateHelper import MapUpdateHelper
 from pdfc_fr.TowerHelper import TowerHelper
+from pdfc_fr.msg import TowerDataArray
 
 CH = Enum('Commander_Handler', ['TAKEOFF', 'TAKINGOFF', 'FLY', 'FLYING', 'LAND', 'LANDING'])
 class PublisherHelper:
@@ -24,6 +25,7 @@ class PublisherHelper:
         self.pub_pos = np.ndarray((len(self.swarm.allcfs.crazyflies),),rospy.Publisher)
         self.pub_vel = np.ndarray((len(self.swarm.allcfs.crazyflies),),rospy.Publisher)
         self.cmd_vel_sub = np.ndarray((len(self.swarm.allcfs.crazyflies),),rospy.Subscriber)
+        self.pub_tower_data = np.ndarray((len(self.swarm.allcfs.crazyflies),),rospy.Subscriber)
         
         self.clock_pub = rospy.Publisher('/clock', Clock, queue_size=10)
 
@@ -36,8 +38,9 @@ class PublisherHelper:
             self.pub_pos[i] = rospy.Publisher('node'+str(cf.id)+'/pose', PoseStamped, queue_size=10)
             self.pub_vel[i] = rospy.Publisher('node'+str(cf.id)+'/twist', TwistStamped, queue_size=10)
             self.cmd_vel_sub[i] = rospy.Subscriber('node'+str(cf.id)+'/cmd_vel', Twist, self.vel_callback, (cf,))
+            self.pub_tower_data[i] = rospy.Publisher('node'+str(cf.id)+'/tower_data', TowerDataArray, queue_size=10)
 
-        self.tower_handler = TowerHelper(self.map_handler.map.dimensions)
+        self.tower_handler = TowerHelper(self.map_handler.map.dimensions, self.pub_tower_data)
 
     def run_algorithm(self):
 
@@ -46,22 +49,24 @@ class PublisherHelper:
         iii = 0
         while (not self.th.isShutdown()):
 
-            # Publish agent positions and velocities
-            curr_pos = self.position_publisher(self.pub_pos)
-            self.velocity_publisher(self.pub_vel)
+            
 
             # Run the towers
             if iii == self.number_of_agents:
                 iii = 0
 
             if np.remainder(ii,2) == 0:
-                self.tower_handler.run_towers(curr_pos, iii)
+                # Publish agent positions and velocities
+                self.curr_pos = self.position_publisher(self.pub_pos)
+                self.curr_vel = self.velocity_publisher(self.pub_vel)
+
+                self.tower_handler.run_towers(self.curr_pos, self.curr_vel, iii)
                 iii += 1
 
             # Publish map
             if ii == self.rate:
                 ii = 0
-                self.map_handler.map_publisher(curr_pos)
+                self.map_handler.map_publisher(self.curr_pos)
 
             # Change from takeoff mode to fly mode after the takeoff duration
             if (self.commander_handler == CH.TAKINGOFF) and ((self.th.time()-init_time)>=self.takeoff_and_land_duration+1):
@@ -108,6 +113,10 @@ class PublisherHelper:
         cf = args[0]
         cf.cmdVelocityWorld([v.linear.x, v.linear.y, v.linear.z],0)
 
+        #rospy.sleep(1/self.rate)
+        #cf.cmdVelocityWorld([0, 0, 0],0)
+
+
     def commander(self, id, start:bool = False, stop:bool = False):
 
         #rospy.wait_for_service('node'+str(i+1)+'/commander')
@@ -148,6 +157,8 @@ class PublisherHelper:
 
     def velocity_publisher(self, pub:rospy.Publisher):
 
+        curr_vel = np.ndarray((len(pub), 3))
+
         for i in range(len(pub)):
             time_s, time_d = divmod(self.th.time(), 1)
             time_ns = time_d * 10**9
@@ -166,3 +177,6 @@ class PublisherHelper:
             vel_stamped.header.frame_id = "map"
             vel_stamped.twist = v
             pub[i].publish(vel_stamped)
+            curr_vel[i] = [cf.velocity()[0],cf.velocity()[1],cf.velocity()[2]]
+
+        return curr_vel

@@ -5,12 +5,13 @@ from pdfc_fr.GradientMap import GradientMap
 import math
 import rospy
 class Algorithm:
-    def __init__(self, agent_id:int, sensing_radius:float, map: GradientMap, control_weights: np.ndarray((6,)), collision_params):
+    def __init__(self, agent_id:int, sensing_radius:float, map: GradientMap, control_weights: np.ndarray((6,)), collision_params, n_agents):
         self.sensing_radius = sensing_radius
         self.map = map
         self.control_weights = control_weights
         self.agent = agent_id - 1
         self.collision_params = collision_params
+        self.n_agents = n_agents
 
     def normalize(self, vector):
 
@@ -166,9 +167,9 @@ class Algorithm:
 
         neighbours = np.where(distribution == 1)[0]
         V = self.normalize(heading)
-        max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size'])
+        max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size']/2)
         Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std']
-        Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + max_distance_per_time_step
+        Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + self.n_agents*max_distance_per_time_step
         Cx = current_positions[self.agent]
         a = []
         for neighbour in neighbours:
@@ -177,7 +178,8 @@ class Algorithm:
             if neighbour == self.agent:
                 continue
 
-            if np.linalg.norm(Cx - Cy) <= Rx + Ry:
+            if np.linalg.norm(Cx - Cy) <= Rx + Ry - self.n_agents*max_distance_per_time_step:
+                print("agents are in collision")
                 continue
 
             Aa = V[0] ** 2 + V[1] ** 2
@@ -189,6 +191,7 @@ class Algorithm:
                 if isinstance(roots[i], complex) or roots[i] < 0:
                     continue
                 a.append(roots[i])
+                #print("collision detected", np.min(a), Rx+Ry)
 
             if len(a) == 0:
                 continue
