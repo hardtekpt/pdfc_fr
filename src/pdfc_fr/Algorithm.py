@@ -163,23 +163,23 @@ class Algorithm:
         return random
     
     
-    def check_for_agent_collisions(self, heading, current_positions: np.ndarray, distribution):
+    def check_for_agent_collisions(self, heading, current_positions: np.ndarray, distribution, n):
 
         neighbours = np.where(distribution == 1)[0]
         V = self.normalize(heading)
-        max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size']/2)
-        Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std']
-        Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + self.n_agents*max_distance_per_time_step
+        max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size'])
+        Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] 
         Cx = current_positions[self.agent]
         a = []
         for neighbour in neighbours:
             Cy = current_positions[neighbour]
+            Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10*max_distance_per_time_step
 
             if neighbour == self.agent:
                 continue
 
-            if np.linalg.norm(Cx - Cy) <= Rx + Ry - self.n_agents*max_distance_per_time_step:
-                print("agents are in collision")
+            if np.linalg.norm(Cx - Cy) <= Rx + Ry:
+                print("agents are in collision", self.agent, neighbour)
                 continue
 
             Aa = V[0] ** 2 + V[1] ** 2

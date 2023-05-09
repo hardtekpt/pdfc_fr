@@ -38,6 +38,7 @@ class NodeHelper:
         
         self.dist = np.zeros((n_agents,))
         self.aux_dist = np.zeros((n_agents,))
+        self.n = np.full((n_agents,), n_agents)
 
         #for i in range(n_agents):
             #self.pos_subs[i] = rospy.Subscriber('node'+str(i+1)+'/pose', PoseStamped, self.save_pos, (i,))
@@ -74,6 +75,7 @@ class NodeHelper:
             i = tower_data.id
             self.curr_pos[i] = tower_data.p
             self.curr_vel[i] = tower_data.v
+            self.n[i] = tower_data.n
             
             if self.run:
                 self.dist[i] = 1
@@ -110,7 +112,9 @@ class NodeHelper:
             self.vel = self.al.check_for_boundaries(self.vel, self.p[0:2])
 
             aux = self.vel 
-            self.vel = self.al.check_for_agent_collisions(self.vel, curr_pos[:,0:2], self.dist)
+
+            #print(self.al.agent, np.where(self.dist == 1)[0])
+            self.vel = self.al.check_for_agent_collisions(self.vel, curr_pos[:,0:2], self.dist, self.n)
 
             #print("node ", self.id, aux==self.vel)
 
@@ -125,7 +129,7 @@ class NodeHelper:
             v.linear.z = 0
             self.pub_vel.publish(v)
 
-            rospy.sleep(self.al.collision_params['time_step_size']*0.5)
+            rospy.sleep(self.al.collision_params['time_step_size'])
 
             v.linear.x = 0
             v.linear.y = 0

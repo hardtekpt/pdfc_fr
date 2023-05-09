@@ -36,17 +36,8 @@ def Node(id:int):
     nh = NodeHelper(n_agents, SR, id, f, al, pub_vel)
     rospy.Service('node'+str(id)+'/commander', Commander, nh.handle_commander)
 
-
-    
-
-    while (not nh.run) or (rospy.Time.secs == 0):# or (not pos_and_vel_data_received):
-        #pos_and_vel_data_received = True
-        #for i in range(n_agents):
-        #    if (nh.get_curr_pos()[i,0] == None) or (nh.get_curr_vel()[i,0] == None):
-        #        pos_and_vel_data_received = False
+    while (not nh.run) or (rospy.Time.secs == 0):
         rate.sleep()
-
-    
 
     # state vector [x, y, Vx, Vy]
     f.x_hat = np.array([[nh.get_curr_pos()[id-1,0]], [nh.get_curr_pos()[id-1,1]], [0], [0]])
@@ -65,38 +56,7 @@ def Node(id:int):
         
     print("Node" + str(id) + " starting")
 
-    
-    
     while nh.run:
-
-        
-        #curr_pos_true = nh.get_curr_pos()
-        #curr_vel_true = nh.get_curr_vel()
-        #curr_dist = nh.get_dist()
-
-        # curr_pos = nh.corrupt_pos(curr_pos_true, noise_std)
-        # curr_vel = nh.corrupt_vel(curr_vel_true, noise_std)
-
-        # f.predict_step(vel)
-        # f.update_step(curr_pos[id-1,0:2])        
-
-        # p = [f.x_hat[0,0], f.x_hat[1,0], curr_pos[id-1,2]]
-
-        # vel = al.update_movement(curr_pos[:,0:2], curr_vel[:,0:2], curr_dist)
-        # vel = al.check_for_obstacle_collisions(vel, p[0:2])
-        # vel = al.check_for_boundaries(vel, p[0:2])
-        # vel = al.check_for_agent_collisions(vel, curr_pos[:,0:2], curr_dist)
-
-        # if np.linalg.norm(vel) > max_speed:
-        #     vel = al.normalize(vel) * max_speed
-        
-        # nh.publish_estimated_pos(p)
-
-        # v = Twist()
-        # v.linear.x = 0
-        # v.linear.y = 0
-        # v.linear.z = 0
-        # pub_vel.publish(v)
         rate.sleep()
 
     print("Node" + str(id) + " stopping")    

@@ -159,6 +159,34 @@ class TowerHelper():
             corrupted_data[i,1] = data[i,1] + noise[1]
             corrupted_data[i,2] = data[i,2] + noise[2]
         return corrupted_data
+    
+    def get_actuation_vector(self, curr_pos):
+
+        n = np.zeros((len(curr_pos)),)
+
+        for i in range(self.number_of_towers):
+
+            for idx in range(len(curr_pos)):
+            
+                p = curr_pos[idx, :]
+
+                self.towers[i,2] = p[0] - self.towers[i,0]
+                self.towers[i,3] = p[1] - self.towers[i,1]
+
+                lower_vector = self.rotate_vector(np.array(self.towers[i,2:4]), -1 * self.strip_half_rads_sin, self.strip_half_rads_cos)
+                upper_vector = self.rotate_vector(np.array(self.towers[i,2:4]), self.strip_half_rads_sin, self.strip_half_rads_cos)
+
+                lower_boundary = self.get_strip_start_end_points_from_vector(lower_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
+                upper_boundary = self.get_strip_start_end_points_from_vector(upper_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
+                lower_boundary, upper_boundary = self.order_boundaries(lower_boundary,upper_boundary)
+
+                neighbours = self.get_neighbours(curr_pos, lower_boundary, upper_boundary)
+                neighbours[idx] = 1
+
+                for j in np.where(neighbours == 1)[0]:
+                    n[int(j)] += 1
+        
+        return n
         
 
     def run_towers(self, curr_pos, curr_vel, idx):
@@ -167,12 +195,14 @@ class TowerHelper():
             self.corrupted_pos = self.corrupt_data(curr_pos)
             self.corrupted_vel = self.corrupt_data(curr_vel)
 
+            self.n = self.get_actuation_vector(curr_pos)
+
         corrupted_pos = self.corrupted_pos
         corrupted_vel = self.corrupted_vel
 
         for i in range(self.number_of_towers):
             
-            p = corrupted_pos[idx, :]
+            p = curr_pos[idx, :]
 
             # Align tower with agent
             self.towers[i,2] = p[0] - self.towers[i,0]
@@ -190,7 +220,7 @@ class TowerHelper():
             lower_boundary, upper_boundary = self.order_boundaries(lower_boundary,upper_boundary)
 
             # Calculate neighbours
-            neighbours = self.get_neighbours(corrupted_pos, lower_boundary, upper_boundary)
+            neighbours = self.get_neighbours(curr_pos, lower_boundary, upper_boundary)
             neighbours[idx] = 1
 
             #print("neighbours of node ", idx, np.where(neighbours == 1)[0])
@@ -207,7 +237,7 @@ class TowerHelper():
                     data.p = corrupted_pos[j, :]
                     data.v = corrupted_vel[j, :]
                     data.id = j
-                    data.n
+                    data.n = int(self.n[j])
 
                     data_array.data.append(data)
             for j in range(len(curr_pos)):
