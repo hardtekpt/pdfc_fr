@@ -35,8 +35,8 @@ class TowerHelper():
             l = random.random() * map_dimensions[0]
             a = random.random()
 
-            l = 0
-            a = 0
+            l = 10
+            a = 1
 
             if a < 0.5:
                 self.towers[i,0] = 0

@@ -179,8 +179,9 @@ class Algorithm:
                 continue
 
             if np.linalg.norm(Cx - Cy) <= Rx + Ry:
-                print("agents are in collision", self.agent, neighbour)
-                continue
+                #print("agents are in collision", self.agent, neighbour)
+                #continue
+                a.append(0)
 
             Aa = V[0] ** 2 + V[1] ** 2
             Bb = 2 * (Cx[0]*V[0] - Cy[0]*V[0] + Cx[1]*V[1] - Cy[1]*V[1])
