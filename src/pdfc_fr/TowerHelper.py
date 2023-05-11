@@ -146,15 +146,18 @@ class TowerHelper():
     def corrupt_data(self, data):
 
         corrupted_data = np.ndarray((len(data),3))
-        noise = np.random.normal(0,self.noise_std,3)
-
-        for i in range(len(noise)):
-            if noise[i] > 3 * self.noise_std:
-                noise[i] = 3 * self.noise_std
-            if noise[i] < -3 * self.noise_std:
-                noise[i] = -3 * self.noise_std
+        
         
         for i in range(len(data)):
+
+            noise = np.random.normal(0,self.noise_std,3)
+
+            for j in range(len(noise)):
+                if noise[j] > 3 * self.noise_std:
+                    noise[j] = 3 * self.noise_std
+                if noise[j] < -3 * self.noise_std:
+                    noise[j] = -3 * self.noise_std
+
             corrupted_data[i,0] = data[i,0] + noise[0]
             corrupted_data[i,1] = data[i,1] + noise[1]
             corrupted_data[i,2] = data[i,2] + noise[2]

@@ -168,12 +168,12 @@ class Algorithm:
         neighbours = np.where(distribution == 1)[0]
         V = self.normalize(heading)
         max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size'])
-        Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] 
+        Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10 * 0.01
         Cx = current_positions[self.agent]
         a = []
         for neighbour in neighbours:
             Cy = current_positions[neighbour]
-            Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10*max_distance_per_time_step
+            Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10*max_distance_per_time_step + 10 * 0.01
 
             if neighbour == self.agent:
                 continue
