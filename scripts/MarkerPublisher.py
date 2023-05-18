@@ -4,6 +4,7 @@ import rospy
 import sys
 from geometry_msgs.msg import PoseStamped, Point
 from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg import ColorRGBA
 from pdfc_fr.GradientMap import GradientMap
 import matplotlib
 import numpy as np
@@ -59,9 +60,9 @@ def pos_callback(p:PoseStamped, args):
     marker.pose.orientation.y = p.pose.orientation.y
     marker.pose.orientation.z = p.pose.orientation.z
     marker.pose.orientation.w = p.pose.orientation.w
-    marker.scale.x = 2
-    marker.scale.y = 2
-    marker.scale.z = 2
+    marker.scale.x = 1.5
+    marker.scale.y = 1.5
+    marker.scale.z = 1.5
     marker.color.a = 1.0
     marker.color.r = 1.0
     marker.color.g = 1.0
@@ -156,6 +157,10 @@ def towers_update(update_msg:Towers, args):
     tower_cones = MarkerArray()    
     towers = MarkerArray()    
 
+    white = ColorRGBA(1,1,1,1)
+    red = ColorRGBA(1,0,0,1)
+    blue = ColorRGBA(0,0,1,1)
+
     for t in update_msg.towers:
 
         p = Point()
@@ -209,6 +214,7 @@ def towers_update(update_msg:Towers, args):
         marker.color.r = 1.0
         marker.color.g = 1.0
         marker.color.b = 1.0
+        marker.colors = [white, white, white, white, white, white]
         marker.points = []
         marker.points.append(p)
         marker.points.append(c)

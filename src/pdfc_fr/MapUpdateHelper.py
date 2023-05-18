@@ -9,11 +9,11 @@ from enum import Enum
 
 class MapUpdateHelper:
 
-    MAX_DISTANCE_PER_TIME_STEP = 0.5
+    MAX_DISTANCE_PER_TIME_STEP = 0.25
 
     VISIT_MULTIPLIER = 0.01
 
-    INSPECTION_THERESHOLD = 800
+    INSPECTION_THERESHOLD = 500
 
     MAP_TYPE = Enum('Map_Type', ['SINGLE_MAX', 'SINGLE_MIN', 'MULTIPLE_MAX_AND_MIN', 'BIG_MAP'])
 
@@ -24,8 +24,8 @@ class MapUpdateHelper:
         self.obstacles = False
         self.dynamic_pos = False
         self.dynamic_val = False
-        self.random_creation_and_destruction_of_hiperboloids = False
-        self.map_type = MapUpdateHelper.MAP_TYPE.SINGLE_MAX
+        self.random_creation_and_destruction_of_hiperboloids = True
+        self.map_type = MapUpdateHelper.MAP_TYPE.BIG_MAP
 
         self.map = self.init_map()
 

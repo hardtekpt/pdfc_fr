@@ -34,10 +34,10 @@ class Algorithm:
         random = self.get_random_vector()
 
         #heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[6]*random
-        heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[6]*random
+        heading = cw[0]*separation + cw[1]*cohesion + cw[2]*alignment + cw[3]*attraction + cw[4]*utility + cw[6]*random #+ cw[5]*formation
         heading_norm = self.normalize(heading)
 
-        new_velocity = current_velocities[self.agent, :] + heading
+        new_velocity = current_velocities[self.agent, :] + heading_norm
 
         return new_velocity
     
@@ -164,24 +164,51 @@ class Algorithm:
     
     
     def check_for_agent_collisions(self, heading, current_positions: np.ndarray, distribution, n):
+        #print(self.agent, distribution)
+        #if distribution[0] == 0 or distribution[1] == 0:
+        #        print(self.agent,"failed neighbours")
+
+        # if self.agent == 7:
+        #     print(np.where(distribution == 1)[0])
+
+        time_step = 1/rospy.get_param("publish_rate")
 
         neighbours = np.where(distribution == 1)[0]
         V = self.normalize(heading)
-        max_distance_per_time_step = (self.collision_params['max_speed'] * self.collision_params['time_step_size'])
-        Rx = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10 * 0.01
+        max_distance_per_time_step = (self.collision_params['max_speed'] * (time_step / self.n_agents))
+        Rx = self.collision_params['cf_radius'] + (12) * self.collision_params['noise_std'] + 0.15
         Cx = current_positions[self.agent]
+        Cxe = Cx + heading
         a = []
         for neighbour in neighbours:
             Cy = current_positions[neighbour]
-            Ry = self.collision_params['cf_radius'] + 6 * self.collision_params['noise_std'] + 10*max_distance_per_time_step + 10 * 0.01
+            Ry = self.collision_params['cf_radius'] + (12) * self.collision_params['noise_std'] + max_distance_per_time_step + 0.15
 
             if neighbour == self.agent:
                 continue
+            
+            if np.linalg.norm(Cxe - Cy) <= Rx + Ry:
+                a.append(0)
+            
 
             if np.linalg.norm(Cx - Cy) <= Rx + Ry:
                 #print("agents are in collision", self.agent, neighbour)
                 #continue
-                a.append(0)
+
+                # check if heading is bringing me closer to neighbour. if yes, stop. If not, continue
+                aux = self.normalize(Cy-Cx)
+                angle = np.abs(np.arccos(np.clip(np.dot(V, aux), -1.0, 1.0)))
+                # if self.agent == 1:
+                #     print(angle)
+                #if angle > math.pi/2:
+                    #continue
+                #else:
+                #a.append(0)
+                continue
+
+            
+
+            
 
             Aa = V[0] ** 2 + V[1] ** 2
             Bb = 2 * (Cx[0]*V[0] - Cy[0]*V[0] + Cx[1]*V[1] - Cy[1]*V[1])
@@ -197,7 +224,7 @@ class Algorithm:
             if len(a) == 0:
                 continue
             
-            heading = V * np.min(a)
+            heading = V * np.min(a) * (1/self.n_agents)
             
 
         return heading

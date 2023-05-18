@@ -71,18 +71,27 @@ class NodeHelper:
         for j in range(len(tower_data_array.data)):
 
             tower_data = tower_data_array.data[j]
-        
             i = tower_data.id
-            self.curr_pos[i] = tower_data.p
-            self.curr_vel[i] = tower_data.v
-            self.n[i] = tower_data.n
-            
-            if self.run:
-                self.dist[i] = 1
-                self.aux_dist[i] = 1
 
             if tower_data_array.target == self.id-1:
                 reset = True
+        
+            self.curr_pos[i] = tower_data.p
+            self.curr_vel[i] = tower_data.v
+            self.n[i] = tower_data.n
+        
+            self.dist[i] = 1
+            self.aux_dist[i] = 1
+            
+            # else:
+            #     if i == tower_data_array.target:
+            #         self.curr_pos[i] = tower_data.p
+            #         self.curr_vel[i] = tower_data.v
+            #         self.n[i] = tower_data.n
+                
+            #         self.dist[i] = 1
+            #         self.aux_dist[i] = 1                    
+            
         
         #self.p = [self.get_curr_pos()[self.id-1,0],self.get_curr_pos()[self.id-1,1],self.get_curr_pos()[self.id-1,2]]
 
@@ -111,7 +120,6 @@ class NodeHelper:
             self.vel = self.al.check_for_obstacle_collisions(self.vel, self.p[0:2])
             self.vel = self.al.check_for_boundaries(self.vel, self.p[0:2])
 
-            aux = self.vel 
 
             #print(self.al.agent, np.where(self.dist == 1)[0])
             self.vel = self.al.check_for_agent_collisions(self.vel, curr_pos[:,0:2], self.dist, self.n)
@@ -121,7 +129,7 @@ class NodeHelper:
             if np.linalg.norm(self.vel) > self.max_speed:
                 self.vel = self.al.normalize(self.vel) * self.max_speed
             
-            self.publish_estimated_pos(self.p)
+            self.publish_estimated_pos(curr_pos[self.id-1,:])
 
             v = Twist()
             v.linear.x = self.vel[0]
@@ -129,7 +137,7 @@ class NodeHelper:
             v.linear.z = 0
             self.pub_vel.publish(v)
 
-            rospy.sleep(self.al.collision_params['time_step_size'])
+            rospy.sleep(self.al.collision_params['time_step_size']/self.n_agents)
 
             v.linear.x = 0
             v.linear.y = 0

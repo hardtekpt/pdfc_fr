@@ -7,7 +7,7 @@
     <group ns="algorithm">
         <rosparam file="$(find pdfc_fr)/config/algorithm_params.yaml" />
 
-        <node pkg="pdfc_fr" type="Publisher.py" name="publisher" output="screen" args="--sim --dt=0.1 --vis=mpl"/>
+        <node pkg="pdfc_fr" type="Publisher.py" name="publisher" output="screen" args="--sim --dt=0.05 --vis=mpl"/>
             
         <include file="$(find pdfc_fr)/launch/node.launch">
             <arg name="name" value="node1"/>

@@ -60,9 +60,9 @@ class PublisherHelper:
             if iii == self.number_of_agents:
                 iii = 0
 
-                # Publish agent positions and velocities
-                self.curr_pos = self.position_publisher(self.pub_pos)
-                self.curr_vel = self.velocity_publisher(self.pub_vel)
+            # Publish agent positions and velocities
+            self.curr_pos = self.position_publisher(self.pub_pos)
+            self.curr_vel = self.velocity_publisher(self.pub_vel)
 
             #if np.remainder(ii,2) == 0:
             self.tower_handler.run_towers(self.curr_pos, self.curr_vel, iii)

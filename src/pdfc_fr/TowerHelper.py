@@ -35,8 +35,8 @@ class TowerHelper():
             l = random.random() * map_dimensions[0]
             a = random.random()
 
-            l = 10
-            a = 1
+            l = 20
+            a = 0
 
             if a < 0.5:
                 self.towers[i,0] = 0
@@ -111,14 +111,44 @@ class TowerHelper():
     
     def order_boundaries(self, lower_boundary, upper_boundary):
 
-        if lower_boundary[0, 1] != upper_boundary[0, 1]:
-            if lower_boundary[0, 1] < upper_boundary[0, 1]:
-                return lower_boundary, upper_boundary
-            return upper_boundary, lower_boundary
+        if lower_boundary[0,0] == 0:
+            if lower_boundary[1,1] < lower_boundary[0,1]:
+                if lower_boundary[1,0] > upper_boundary[1,0]:
+                    return upper_boundary, lower_boundary
+                if lower_boundary[1,0] == upper_boundary[1,0]:
+                    if lower_boundary[1,1] > upper_boundary[1,1]:
+                        return upper_boundary, lower_boundary
+            else:
+                if lower_boundary[1,0] < upper_boundary[1,0]:
+                    return upper_boundary, lower_boundary
+                if lower_boundary[1,0] == upper_boundary[1,0]:
+                    if lower_boundary[1,1] < upper_boundary[1,1]:
+                        return upper_boundary, lower_boundary
+                    
+        if lower_boundary[0,0] != 0:
+            if lower_boundary[1,1] < lower_boundary[0,1]:
+                if lower_boundary[1,0] < upper_boundary[1,0]:
+                    return upper_boundary, lower_boundary
+                if lower_boundary[1,0] == upper_boundary[1,0]:
+                    if lower_boundary[1,1] < upper_boundary[1,1]:
+                        return upper_boundary, lower_boundary
+            else:
+                if lower_boundary[1,0] > upper_boundary[1,0]:
+                    return upper_boundary, lower_boundary
+                if lower_boundary[1,0] == upper_boundary[1,0]:
+                    if lower_boundary[1,1] > upper_boundary[1,1]:
+                        return upper_boundary, lower_boundary            
+        
+        return lower_boundary, upper_boundary
 
-        if lower_boundary[1, 1] < upper_boundary[1, 1]:
-            return lower_boundary, upper_boundary
-        return upper_boundary, lower_boundary
+        # if lower_boundary[0, 1] != upper_boundary[0, 1]:
+        #     if lower_boundary[0, 1] < upper_boundary[0, 1]:
+        #         return lower_boundary, upper_boundary
+        #     return upper_boundary, lower_boundary
+
+        # if lower_boundary[1, 1] < upper_boundary[1, 1]:
+        #     return lower_boundary, upper_boundary
+        # return upper_boundary, lower_boundary
     
     def get_neighbours(self, curr_pos, lower_boundary, upper_boundary):
 
@@ -130,7 +160,7 @@ class TowerHelper():
         m_u = (upper_boundary[1,1]-upper_boundary[0,1]) / (upper_boundary[1,0]-upper_boundary[0,0])
         b_u = upper_boundary[0,1] - m_l * upper_boundary[0,0]
 
-        radius = self.cf_radius + 6 * self.noise_std
+        radius = self.cf_radius + 3 * self.noise_std
 
         for i in range(len(curr_pos)):
 
@@ -151,6 +181,7 @@ class TowerHelper():
         for i in range(len(data)):
 
             noise = np.random.normal(0,self.noise_std,3)
+            #noise = np.random.normal(0,0,3)
 
             for j in range(len(noise)):
                 if noise[j] > 3 * self.noise_std:
@@ -186,6 +217,8 @@ class TowerHelper():
                 neighbours = self.get_neighbours(curr_pos, lower_boundary, upper_boundary)
                 neighbours[idx] = 1
 
+                
+
                 for j in np.where(neighbours == 1)[0]:
                     n[int(j)] += 1
         
@@ -194,18 +227,18 @@ class TowerHelper():
 
     def run_towers(self, curr_pos, curr_vel, idx):
 
-        if idx == 0:
-            self.corrupted_pos = self.corrupt_data(curr_pos)
-            self.corrupted_vel = self.corrupt_data(curr_vel)
+        #if idx == 0:
+        self.corrupted_pos = self.corrupt_data(curr_pos)
+        self.corrupted_vel = self.corrupt_data(curr_vel)
 
-            self.n = self.get_actuation_vector(curr_pos)
+        self.n = self.get_actuation_vector(curr_pos)
 
         corrupted_pos = self.corrupted_pos
         corrupted_vel = self.corrupted_vel
 
         for i in range(self.number_of_towers):
             
-            p = curr_pos[idx, :]
+            p = corrupted_pos[idx, :]
 
             # Align tower with agent
             self.towers[i,2] = p[0] - self.towers[i,0]
@@ -220,12 +253,21 @@ class TowerHelper():
             lower_boundary = self.get_strip_start_end_points_from_vector(lower_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
             upper_boundary = self.get_strip_start_end_points_from_vector(upper_vector, self.towers[i,0:2], self.map_dimensions[0],p[0:2])
 
+            #print("before", lower_boundary, upper_boundary)
+
             lower_boundary, upper_boundary = self.order_boundaries(lower_boundary,upper_boundary)
 
+            #print("after", lower_boundary, upper_boundary)
+
             # Calculate neighbours
-            neighbours = self.get_neighbours(curr_pos, lower_boundary, upper_boundary)
+            neighbours = self.get_neighbours(corrupted_pos, lower_boundary, upper_boundary)
             neighbours[idx] = 1
 
+            #neighbours = np.ones((len(curr_pos),))
+
+            #if neighbours[0] == 0 or neighbours[1] == 0:
+            #    print("failed neighbours")
+            
             #print("neighbours of node ", idx, np.where(neighbours == 1)[0])
 
             #print("s", idx,  neighbours)

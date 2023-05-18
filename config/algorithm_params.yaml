@@ -1,5 +1,5 @@
 number_of_agents: 10
-run_duration: 300
+run_duration: 180
 flying_height: 1
 takeoff_and_land_duration: 3
 agent_sensing_radius: 30
@@ -12,10 +12,10 @@ control_weights:
   - 1
   - 0.01
 agent_max_vel: 1
-compute_frequency: 30
-cf_radius: 0.20
-noise_std: 0.05
-publish_rate: 30
+compute_frequency: 20
+cf_radius: 0.15
+noise_std: 0.025
+publish_rate: 20
 map_draw_resolution: 0.5
 number_of_towers: 1
 tower_angle: 16

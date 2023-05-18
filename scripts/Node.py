@@ -26,7 +26,7 @@ def Node(id:int):
     pub_vel = rospy.Publisher('node'+str(id)+'/cmd_vel', Twist, queue_size=10)
 
     rospy.init_node('node'+str(id))
-    rate = rospy.Rate(freq)
+    rate = rospy.Rate(100)
     
     map = GradientMap()
     rospy.Subscriber('publisher/map', Map, map.map_update)
